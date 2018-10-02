@@ -159,11 +159,3 @@ for i in v_dic:
 
     print(i,': RMSE_v=', np.sqrt(metrics.mean_squared_error(y_v_np, y_pred_v_np)),'R2_v=',metrics.r2_score(y_v_np, y_pred_v_np))
     
-  
-    
-    
-
-## After training
-#hour_var = Variable(torch.Tensor([[4.0]]))
-#y_pred = model(hour_var)
-#print("predict (after training)",  4, model(hour_var).data[0][0])
