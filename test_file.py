@@ -11,6 +11,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split, cross_val_score, cross_val_predict
 from sklearn import metrics
 from matplotlib.pyplot import figure
+import matplotlib.font_manager as font_manager
 
 #Define hyper-parameters
 epoch = 100000
@@ -136,32 +137,48 @@ I'll use this later for RNNs
 
 
 #Validation block
-v_dic = ['v-ss','v-ms','v-rc','v-ph']
-markers= ['^', '1', '*']
-
-fig = plt.figure(figsize=(5,5))
-ax = fig.add_subplot(1, 1, 1)
-
-for i , j in zip(v_dic,markers):
-    df_v = xl.parse(i)
-    x_v_np = df_v[['E','T','L','t','Conf','pH']].values
-    y_v_np = df_v[['X']].values
-    x_v = Variable(torch.Tensor(x_v_np),requires_grad=False)
-    y_v = Variable(torch.Tensor(y_v_np),requires_grad=False)
-    y_pred_v = ANN(x_v)
-    y_pred_v_np = y_pred_v.detach().numpy()
-
-    ax.scatter(y_v_np, y_pred_v_np,label=i,marker=j)
-    ax.legend()
-    plt.xlabel('True Values')
-    plt.ylabel('Predictions')
-    plt.axis([0, 5, 0, 5])
-    plt.title('Validation')
-    print(j)
-
-
-    print(i,': RMSE_v=', np.sqrt(metrics.mean_squared_error(y_v_np, y_pred_v_np)),'R2_v=',metrics.r2_score(y_v_np, y_pred_v_np))
+def Validation ():
     
+    v_dic = ['v-ss','v-ms','v-rc','v-ph']
+    markers= ['^', '1', '*','>']
+    
+    fig = plt.figure(figsize=(5,5))
+    ax = fig.add_subplot(111)
+    
+    for axis in ['top','bottom','left','right']:
+        ax.spines[axis].set_linewidth(2)
+    ax.axis([0, 5, 0, 5])
+    ax.set_title('Validation', fontname='Arial', fontsize=24)
+    ax.set_xlabel('True values', fontname='Arial', fontsize=20)
+    ax.set_ylabel('Predictions', fontname='Arial', fontsize=20)
+    plt.xticks(fontname='Arial', fontsize = 14)
+    plt.yticks(fontname='Arial', fontsize = 14)   
+    ax.tick_params(axis='both', length=7, width = 2)
+    
+    lims = [np.min([ax.get_xlim(), ax.get_ylim()]), # min of both axes 
+            np.max([ax.get_xlim(), ax.get_ylim()]),] # max of both axes  
+    ax.plot(lims, lims, 'k-', alpha=0.75, zorder=0,linewidth=2)
+    ax.set_aspect('equal')
+    ax.set_xlim(lims)
+    ax.set_ylim(lims)
+     
+    for i , j in zip(v_dic,markers):
+        df_v = xl.parse(i)
+        x_v_np = df_v[['E','T','L','t','Conf','pH']].values
+        y_v_np = df_v[['X']].values
+        x_v = Variable(torch.Tensor(x_v_np),requires_grad=False)
+
+        y_pred_v = ANN(x_v)
+        y_pred_v_np = y_pred_v.detach().numpy()
+    
+        ax.scatter(y_v_np, y_pred_v_np,label=i,marker=j,s=100,alpha=0.75)
+        ax.legend(prop=font_manager.FontProperties(family='Arial', weight='normal', style='normal', size=14))
+     
+        print(i,': RMSE_v=', np.sqrt(metrics.mean_squared_error(y_v_np, y_pred_v_np)),'R2_v=',metrics.r2_score(y_v_np, y_pred_v_np))
+ 
+    fig.savefig('Validation.jpeg', dpi=200)   
+    
+Validation()    
 
 
 
@@ -177,5 +194,27 @@ sns.lmplot( x="sepal_length", y="sepal_width", data=df, fit_reg=False, hue='spec
 plt.legend(loc='lower right')
  
 #sns.plt.show()
+
+
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+# random data 
+N = 37
+x = np.random.normal(loc=3.5, scale=1.25, size=N)
+y = np.random.normal(loc=3.4, scale=1.5, size=N)
+c = x**2 + y**2
+
+# now sort it just to make it look like it's related
+x.sort()
+y.sort()
+
+fig, ax = plt.subplots()
+ax.scatter(x, y, s=25, c=c, cmap=plt.cm.coolwarm, zorder=10)
+
+
+
+
 
 
