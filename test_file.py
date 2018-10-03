@@ -136,11 +136,13 @@ I'll use this later for RNNs
 
 
 #Validation block
+v_dic = ['v-ss','v-ms','v-rc','v-ph']
+markers= ['^', '1', '*']
+
 fig = plt.figure(figsize=(5,5))
 ax = fig.add_subplot(1, 1, 1)
 
-v_dic = ['v-ss','v-ms','v-rc','v-ph']
-for i in v_dic:
+for i , j in zip(v_dic,markers):
     df_v = xl.parse(i)
     x_v_np = df_v[['E','T','L','t','Conf','pH']].values
     y_v_np = df_v[['X']].values
@@ -149,13 +151,31 @@ for i in v_dic:
     y_pred_v = ANN(x_v)
     y_pred_v_np = y_pred_v.detach().numpy()
 
-    ax.scatter(y_v_np, y_pred_v_np,label=i)
+    ax.scatter(y_v_np, y_pred_v_np,label=i,marker=j)
     ax.legend()
     plt.xlabel('True Values')
     plt.ylabel('Predictions')
     plt.axis([0, 5, 0, 5])
     plt.title('Validation')
+    print(j)
 
 
     print(i,': RMSE_v=', np.sqrt(metrics.mean_squared_error(y_v_np, y_pred_v_np)),'R2_v=',metrics.r2_score(y_v_np, y_pred_v_np))
     
+
+
+
+
+# library & dataset
+import seaborn as sns
+df = sns.load_dataset('iris')
+ 
+# Provide a dictionary to the palette argument
+sns.lmplot( x="sepal_length", y="sepal_width", data=df, fit_reg=False, hue='species', legend=False, palette=dict(setosa="#9b59b6", virginica="#3498db", versicolor="#95a5a6"))
+ 
+# Move the legend to an empty part of the plot
+plt.legend(loc='lower right')
+ 
+#sns.plt.show()
+
+
