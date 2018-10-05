@@ -102,20 +102,48 @@ for i in range(epoch):
     optimizer.step()
 
 #Data post-processing
+#Chart function for data visualization
+def chart(Title,xymin,xymax):
+
+    chart.fig = plt.figure(figsize=(5,5))
+    chart.ax = chart.fig.add_subplot(111)
+    
+    for axis in ['top','bottom','left','right']:
+        chart.ax.spines[axis].set_linewidth(2)
+    chart.ax.axis([xymin, xymax, xymin, xymax])
+    chart.ax.set_title(Title, fontname='Arial', fontsize=24)
+    chart.ax.set_xlabel('True values', fontname='Arial', fontsize=20)
+    chart.ax.set_ylabel('Predictions', fontname='Arial', fontsize=20)
+    plt.xticks(fontname='Arial', fontsize = 14)
+    plt.yticks(fontname='Arial', fontsize = 14)   
+    chart.ax.tick_params(axis='both', length=7, width = 2)
+    
+    lims = [np.min([chart.ax.get_xlim(), chart.ax.get_ylim()]), # min of both axes 
+            np.max([chart.ax.get_xlim(), chart.ax.get_ylim()]),] # max of both axes  
+    chart.ax.plot(lims, lims, 'k-', alpha=0.75, zorder=0,linewidth=2)
+    chart.ax.set_aspect('equal')
+    chart.ax.set_xlim(lims)
+    chart.ax.set_ylim(lims)
+    
+    return
+
 y_pred_np = y_pred.detach().numpy()
-plt.scatter(y_train_np,y_pred_np)
-plt.title('Training')
+
+chart(Title='Training',xymin=0,xymax=6)
+chart.ax.scatter(y_train_np,y_pred_np,s=100,alpha=0.75)
 plt.show()
+chart.fig.savefig('Training.jpeg', dpi=200)   
+
 print('RMSE_train=', np.sqrt(metrics.mean_squared_error(y_train_np, y_pred_np)), 'R2_train=', metrics.r2_score(y_train_np, y_pred_np))
 
 #Save parameters to csv
-file_para = open('parameters.csv', 'w')
+file_para = open('parameters.txt', 'w')
 #file_para = open('parameters.csv', 'a')  
 list_para = list(ANN.named_parameters())
 #file_para.write(str(list_para))
 for name, param in ANN.named_parameters():
 #    if param.requires_grad:
-    file_para = open('parameters.csv', 'a')  
+    file_para = open('parameters.txt', 'a')  
     file_para.write('{}, {}\n'.format(name, param))
     print (name, param.data)
 file_para.close()
@@ -137,46 +165,24 @@ I'll use this later for RNNs
 
 
 #Validation block
-def Validation ():
-    
-    v_dic = ['v-ss','v-ms','v-rc','v-ph']
-    markers= ['^', '1', '*','>']
-    
-    fig = plt.figure(figsize=(5,5))
-    ax = fig.add_subplot(111)
-    
-    for axis in ['top','bottom','left','right']:
-        ax.spines[axis].set_linewidth(2)
-    ax.axis([0, 5, 0, 5])
-    ax.set_title('Validation', fontname='Arial', fontsize=24)
-    ax.set_xlabel('True values', fontname='Arial', fontsize=20)
-    ax.set_ylabel('Predictions', fontname='Arial', fontsize=20)
-    plt.xticks(fontname='Arial', fontsize = 14)
-    plt.yticks(fontname='Arial', fontsize = 14)   
-    ax.tick_params(axis='both', length=7, width = 2)
-    
-    lims = [np.min([ax.get_xlim(), ax.get_ylim()]), # min of both axes 
-            np.max([ax.get_xlim(), ax.get_ylim()]),] # max of both axes  
-    ax.plot(lims, lims, 'k-', alpha=0.75, zorder=0,linewidth=2)
-    ax.set_aspect('equal')
-    ax.set_xlim(lims)
-    ax.set_ylim(lims)
-     
-    for i , j in zip(v_dic,markers):
-        df_v = xl.parse(i)
-        x_v_np = df_v[['E','T','L','t','Conf','pH']].values
-        y_v_np = df_v[['X']].values
-        x_v = Variable(torch.Tensor(x_v_np),requires_grad=False)
+v_dic = ['v-ss','v-ms','v-rc','v-ph']
+markers= ['^', '1', '*','>']
 
-        y_pred_v = ANN(x_v)
-        y_pred_v_np = y_pred_v.detach().numpy()
-    
-        ax.scatter(y_v_np, y_pred_v_np,label=i,marker=j,s=100,alpha=0.75)
-        ax.legend(prop=font_manager.FontProperties(family='Arial', weight='normal', style='normal', size=14))
-     
-        print(i,': RMSE_v=', np.sqrt(metrics.mean_squared_error(y_v_np, y_pred_v_np)),'R2_v=',metrics.r2_score(y_v_np, y_pred_v_np))
+chart(Title='Validation',xymin=0,xymax=5)
  
-    fig.savefig('Validation.jpeg', dpi=200)   
-    
-Validation()    
-    
+for i , j in zip(v_dic,markers):
+    df_v = xl.parse(i)
+    x_v_np = df_v[['E','T','L','t','Conf','pH']].values
+    y_v_np = df_v[['X']].values
+    x_v = Variable(torch.Tensor(x_v_np),requires_grad=False)
+
+    y_pred_v = ANN(x_v)
+    y_pred_v_np = y_pred_v.detach().numpy()
+
+    chart.ax.scatter(y_v_np, y_pred_v_np,label=i,marker=j,s=100,alpha=0.75)
+    chart.ax.legend(prop=font_manager.FontProperties(family='Arial', weight='normal', style='normal', size=14))
+ 
+    print(i,': RMSE_v=', np.sqrt(metrics.mean_squared_error(y_v_np, y_pred_v_np)),'R2_v=',metrics.r2_score(y_v_np, y_pred_v_np))
+ 
+chart.fig.savefig('Validation.jpeg', dpi=200)
+
